@@ -1,3 +1,4 @@
+# SPANN (spatial-aware version) - optimised for fast runs (e.g. Kaggle T4, ~5 minutes end-to-end)
 #
 # Main changes w.r.t. the original file (algorithm / losses / hyper-parameters are unchanged):
 #   1. No torch DataLoader in the training loop: all matrices are densified ONCE and kept on the GPU,
