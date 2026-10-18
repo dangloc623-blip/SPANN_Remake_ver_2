@@ -220,4 +220,4 @@ with open("seq-fish.ipynb", "w", encoding="utf-8") as f:
 with open("seq_fish.ipynb", "w", encoding="utf-8") as f:
     json.dump(nb, f, indent=1, ensure_ascii=False)
 
-print("Cập nhật thành công cả seq-fish.ipynb và seq_fish.ipynb!")
+print("Successfully updated seq-fish.ipynb and seq_fish.ipynb!")
