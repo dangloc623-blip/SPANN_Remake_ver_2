@@ -1,4 +1,3 @@
-# SPANN (spatial-aware version) - optimised for fast runs (e.g. Kaggle T4, ~5 minutes end-to-end)
 #
 # Main changes w.r.t. the original file (algorithm / losses / hyper-parameters are unchanged):
 #   1. No torch DataLoader in the training loop: all matrices are densified ONCE and kept on the GPU,
@@ -23,6 +22,25 @@ import scipy.stats
 import torch
 import torch.nn.functional as F
 from torch import nn as nn
+
+# ---- compatibility: anndata >= 0.11 removed AnnData.concatenate, which spann/preprocess.py still calls.
+import anndata as _ad
+import pandas as pd
+
+if not hasattr(_ad.AnnData, "concatenate"):
+
+    def _concatenate(self, *others, join="inner", batch_key="batch", batch_categories=None, index_unique="-", **kw):
+        adatas = [self, *others]
+        keys = [str(c) for c in (batch_categories if batch_categories is not None else range(len(adatas)))]
+        res = _ad.concat(adatas, join=join, label=batch_key, keys=keys, index_unique=index_unique)
+        # the old method kept the union of all obs columns (ad.concat keeps only shared ones)
+        obs = pd.concat([a.obs for a in adatas], join="outer")
+        obs.index = res.obs_names
+        obs[batch_key] = res.obs[batch_key].values
+        res.obs = obs
+        return res
+
+    _ad.AnnData.concatenate = _concatenate
 
 
 def kl_div(mu, var, weight=None):
