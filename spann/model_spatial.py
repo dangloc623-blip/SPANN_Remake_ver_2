@@ -613,16 +613,22 @@ class SPANN_model:
 
     """
 
-    def __init__(self, x_dim, z_dim, enc, dec, class_num, device, tau=0.5):
+    def __init__(self, x_dim, z_dim, enc, dec, class_num, device, tau=0.5, lite=False, enc_hidden=None, cls_hidden=None):
         super().__init__()
         self.class_num = class_num
         self.device = device
+        # lite=False (default) -> original architecture (encoder hidden 1024, classifier head 1024).
+        # lite=True -> encoder hidden 512, classifier head 256; enc_hidden / cls_hidden override either.
+        enc = [list(layer) for layer in enc]  # do not modify the caller's list
+        enc_hidden = enc_hidden or (512 if lite else enc[0][1])
+        cls_hidden = cls_hidden or (256 if lite else 1024)
+        enc[0][1] = enc_hidden
         self.feat_dim = enc[-1][1]
         # tau: temperature of the Spatial Contrastive Loss (InfoNCE) used by train_eval
         self.tau = tau
         self.encoder = Encoder(x_dim, enc).to(device)
         self.decoder = Decoder(z_dim, dec).to(device)
-        self.classifier = CLS(z_dim, class_num).to(device)
+        self.classifier = CLS(z_dim, class_num, hidden_mlp=cls_hidden).to(device)
 
     # ----------------------------------------------------------------------------------------------
     # losses
